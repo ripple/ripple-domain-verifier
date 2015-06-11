@@ -17,9 +17,9 @@ import Verifier from 'ripple-account-domain-verifier'
 
   let verifier = new Verifier()
 
-  verifier.verifyDomainRippleAccount(domain, validationPublicKey).then(verified => {
-    assert(verified)
-  })
+  let verified = await verifier.verifyDomainRippleAccount(domain, validationPublicKey)
+
+  assert(verified)
 
 })()
 ````
