@@ -1,5 +1,5 @@
-import RippleTxt from '../lib/ripple_txt.js'
-import {InvalidRippleAccount, InvalidDomain, RippleTxtNotFound, ValidationPublicKeyNotFound} from '../lib/errors'
+import RippleTxt from '../src/ripple_txt.js'
+import {InvalidRippleAccount, InvalidDomain, RippleTxtNotFound, ValidationPublicKeyNotFound} from '../src/errors'
 import assert from 'assert'
 
 describe('RippleTxt', () => {
