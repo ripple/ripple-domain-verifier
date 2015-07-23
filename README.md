@@ -1,26 +1,23 @@
 ** Alpha Unstable Do Not Use! **
 
-## Ripple Account Domain Verifier
+## Ripple Validator Domain Verifier
 
-Given a domain and a validation public key, verify a two-way reference
+Given a validation public key, verify a two-way reference with a domain
 
 ### Installation
 
-`npm install --save ripple-account-domain-verifier`
+`npm install --save ripple-validator-domain-verifier`
 
 ### Usage
 
 ````
-import Verifier from 'ripple-account-domain-verifier'
+import Verifier from 'ripple-validator-domain-verifier'
 
 (async function() {
 
   let verifier = new Verifier()
 
-  let verified = await verifier.verifyDomainRippleAccount(domain, validationPublicKey)
-
-  assert(verified)
+  let domain = await verifier.verifyValidatorDomain(validationPublicKey)
 
 })()
 ````
-
