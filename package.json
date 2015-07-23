@@ -1,7 +1,7 @@
 {
   "name": "ripple-domain-verifier",
   "version": "0.1.0",
-  "description": "two-way cryptographic link between ripple account and domain",
+  "description": "two-way cryptographic link between ripple validator and domain",
   "main": "index.js",
   "scripts": {
     "test": "mocha test/ --compilers=js:babel/register --timeout=10000"
@@ -29,6 +29,7 @@
     "babel-runtime": "^5.5.6",
     "ripple-lib": "^0.12.4",
     "validator": "^3.40.0",
-    "ripple-vault-client": "^0.4.9"
+    "ripple-vault-client": "^0.4.9",
+    "ripple-wallet": "git://github.com/ripple/ripple-wallet.git#03488e79ed00da563fd97704f7aa231887d9c8c9"
   }
 }
