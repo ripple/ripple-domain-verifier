@@ -6,7 +6,7 @@ Given a validation public key, verify a two-way reference with a domain
 
 ### Installation
 
-`npm install --save ripple-validator-domain-verifier`
+`npm install --save ripple-domain-verifier`
 
 ### Usage
 
@@ -17,7 +17,9 @@ import Verifier from 'ripple-validator-domain-verifier'
 
   let verifier = new Verifier()
 
-  let domain = await verifier.verifyValidatorDomain(validationPublicKey)
+  verifier.verifyValidatorDomain(validationPublicKey).then(domain => {
+    console.log('verified domain:', domain)
+  })
 
 })()
 ````

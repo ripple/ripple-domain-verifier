@@ -1,5 +1,5 @@
-import ValidatorDomainVerifier from '../lib'
-import {InvalidRippleAccount, InvalidDomain, RippleTxtNotFound, ValidationPublicKeyNotFound} from '../lib/errors'
+import ValidatorDomainVerifier from '../src'
+import {InvalidRippleAccount, InvalidDomain, RippleTxtNotFound, ValidationPublicKeyNotFound} from '../src/errors'
 import assert from 'assert'
 
 describe('ValidatorDomainVerifier', () => {
