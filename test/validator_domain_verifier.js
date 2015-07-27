@@ -1,5 +1,5 @@
 import ValidatorDomainVerifier from '../src'
-import {InvalidRippleAccount, InvalidDomain, RippleTxtNotFound, ValidationPublicKeyNotFound} from '../src/errors'
+import {InvalidRippleAccount, AccountDomainNotFound, InvalidDomain, RippleTxtNotFound, ValidationPublicKeyNotFound} from '../src/errors'
 import assert from 'assert'
 
 describe('ValidatorDomainVerifier', () => {
@@ -78,6 +78,31 @@ describe('ValidatorDomainVerifier', () => {
       const domain = 'ripple.com'
 
       assert.strictEqual(domain, await verifier.verifyValidatorDomain(validationPublicKey))
+    })
+
+    it('should return error for missing account domain', async () => {
+
+      const verifier = new ValidatorDomainVerifier()
+      const validationPublicKey = 'n9LeE7e1c35m96BfFbUu1HKyJfqwiPvwNk6YxT5ewuZYsvwZqprp'
+
+      try {
+        await verifier.verifyValidatorDomain(validationPublicKey)
+      } catch(error) {
+        assert(error instanceof AccountDomainNotFound)
+      }
+    })
+
+    it('should return error for validation public not found at domain', async () => {
+
+      const verifier = new ValidatorDomainVerifier()
+      const validationPublicKey = 'n9KSFuD5s7jWvcsLEbKJv37kDX57RRR3wf3kS2ra8zedhMW27cN1'
+
+      try {
+        await verifier.verifyValidatorDomain(validationPublicKey)
+      } catch(error) {
+        console.log(error)
+        assert(error instanceof ValidationPublicKeyNotFound)
+      }
     })
   })
 

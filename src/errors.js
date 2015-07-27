@@ -8,6 +8,15 @@ export class InvalidRippleAccount extends Error {
   }
 }
 
+export class AccountDomainNotFound extends Error {
+
+  constructor(address) {
+    super()
+    this.message = address
+    this.type = 'AccountDomainNotFound'
+  }
+}
+
 export class InvalidDomain extends Error {
 
   constructor(domain) {

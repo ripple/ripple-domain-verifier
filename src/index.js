@@ -1,4 +1,4 @@
-import {InvalidRippleAccount, InvalidDomain} from './errors'
+import {InvalidRippleAccount, AccountDomainNotFound, InvalidDomain, ValidationPublicKeyNotFound} from './errors'
 import {UInt160, Account, Remote, sjcl} from 'ripple-lib'
 import validator from 'validator'
 import RippleTxt from './ripple_txt'
@@ -57,11 +57,16 @@ export default class ValidatorDomainVerifier {
     const valPubKey = new ValPublicKey(validationPublicKey)
     const account_id = valPubKey.getAddress()
     ValidatorDomainVerifier._validateRippleAddress(account_id)
-    const domainHex = await this.getDomainHexFromAddress(account_id)
+    let domainHex
+    try {
+      domainHex = await this.getDomainHexFromAddress(account_id)
+    } catch (err) {
+      throw new AccountDomainNotFound(account_id)
+    }
     const domain = ValidatorDomainVerifier._hexToString(domainHex)
     const publicKeys = await this.getValidationPublicKeysFromDomain(domain)
     if (publicKeys.indexOf(validationPublicKey)===-1) {
-      return new ValidationPublicKeyNotFound(domain)
+      throw new ValidationPublicKeyNotFound(domain)
     }
     return domain
   }
