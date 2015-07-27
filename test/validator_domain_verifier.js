@@ -83,7 +83,7 @@ describe('ValidatorDomainVerifier', () => {
     it('should return error for missing account domain', async () => {
 
       const verifier = new ValidatorDomainVerifier()
-      const validationPublicKey = 'n9LeE7e1c35m96BfFbUu1HKyJfqwiPvwNk6YxT5ewuZYsvwZqprp'
+      const validationPublicKey = 'n9KwwpYCU3ctereLW9S48fKjK4rcsvYbHmjgiRXkgWReQR9nDjCw'
 
       try {
         await verifier.verifyValidatorDomain(validationPublicKey)
