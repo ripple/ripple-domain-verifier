@@ -45,6 +45,8 @@ export default class ValidatorDomainVerifier {
           remote.disconnect()
           if (error) {
             reject(error)
+          } else if (!info.account_data.Domain) {
+            reject(new AccountDomainNotFound(account_id))
           } else {
             resolve(info.account_data.Domain)
           }

@@ -100,7 +100,6 @@ describe('ValidatorDomainVerifier', () => {
       try {
         await verifier.verifyValidatorDomain(validationPublicKey)
       } catch(error) {
-        console.log(error)
         assert(error instanceof ValidationPublicKeyNotFound)
       }
     })
