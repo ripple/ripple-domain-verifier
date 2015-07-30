@@ -46,7 +46,7 @@ export default class ValidatorDomainVerifier {
           if (error) {
             reject(error)
           } else if (!info.account_data.Domain) {
-            reject(new AccountDomainNotFound(account_id))
+            reject(new AccountDomainNotFound(address))
           } else {
             resolve(info.account_data.Domain)
           }
