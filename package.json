@@ -29,9 +29,10 @@
     "mocha": "^2.2.5"
   },
   "dependencies": {
+    "ripple-address-codec": "^1.6.0",
+    "ripple-keypairs": "^0.7.3",
     "ripple-lib": "^0.12.4",
-    "validator": "^3.40.0",
     "ripple-vault-client": "^0.4.9",
-    "ripple-wallet": "git://github.com/ripple/ripple-wallet.git#03488e79ed00da563fd97704f7aa231887d9c8c9"
+    "validator": "^3.40.0"
   }
 }
