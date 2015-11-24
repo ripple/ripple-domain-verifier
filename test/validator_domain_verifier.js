@@ -42,7 +42,7 @@ describe('ValidatorDomainVerifier', () => {
       }
     })
 
-    it('should throw an RippleTxtNotFound error', async () => {
+    it('should throw a RippleTxtNotFound error', async () => {
 
       let verifier = new ValidatorDomainVerifier()
       const domain = 'mises.org'
@@ -55,7 +55,7 @@ describe('ValidatorDomainVerifier', () => {
       }
     })
 
-    it('should throw an ValidationPublicKeyNotFound error', async () => {
+    it('should throw a ValidationPublicKeyNotFound error', async () => {
 
       let verifier = new ValidatorDomainVerifier()
       const domain = 'bitso.com'

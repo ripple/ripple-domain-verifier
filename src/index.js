@@ -31,6 +31,9 @@ export default class ValidatorDomainVerifier {
   async getValidationPublicKeysFromDomain(domain) {
     ValidatorDomainVerifier._validateDomain(domain)
     const rippleTxt = await RippleTxt.get(domain)
+    if (!rippleTxt.validation_public_key || rippleTxt.validation_public_key.length === 0) {
+      throw new ValidationPublicKeyNotFound(domain)
+    }
     return rippleTxt.validation_public_key
   }
 

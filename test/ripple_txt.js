@@ -26,18 +26,6 @@ describe('RippleTxt', () => {
         assert.strictEqual(error.message, domain)
       }
     })
-
-    it('should throw a ValidationPublicKeyNotFound error', async () => {
-
-      const domain = 'bitso.com'
-
-      try {
-        const rippleTxt = await RippleTxt.get(domain)
-      } catch(error) {
-        assert(error instanceof ValidationPublicKeyNotFound)
-        assert.strictEqual(error.message, domain)
-      }
-    })
   })
 })
 
