@@ -56,7 +56,7 @@ export default class ValidatorDomainVerifier {
     })
   }
 
-  async verifyValidatorDomain(validationPublicKey) {
+  async verifyValidatorDomain(validationPublicKey, masterPublicKey) {
     const account_id = nodePublicAccountID(validationPublicKey);
     ValidatorDomainVerifier._validateRippleAddress(account_id)
     let domainHex
@@ -67,7 +67,8 @@ export default class ValidatorDomainVerifier {
     }
     const domain = ValidatorDomainVerifier._hexToString(domainHex)
     const publicKeys = await this.getValidationPublicKeysFromDomain(domain)
-    if (publicKeys.indexOf(validationPublicKey)===-1) {
+    if (publicKeys.indexOf(validationPublicKey)===-1 &&
+        (!masterPublicKey || publicKeys.indexOf(masterPublicKey)===-1)) {
       throw new ValidationPublicKeyNotFound(domain)
     }
     return domain
