@@ -80,6 +80,16 @@ describe('ValidatorDomainVerifier', () => {
       assert.strictEqual(domain, await verifier.verifyValidatorDomain(validationPublicKey))
     })
 
+    it('should find the master validation public key at the ephemeral key\'s account root\'s domain', async () => {
+
+      const verifier = new ValidatorDomainVerifier()
+      const validationPublicKey = 'n9LYyd8eUVd54NQQWPAJRFPM1bghJjaf1rkdji2haF4zVjeAPjT2'
+      const masterPublicKey = 'nHUkAWDR4cB8AgPg7VXMX6et8xRTQb2KJfgv1aBEXozwrawRKgMB'
+      const domain = 'testnet.ripple.com'
+
+      assert.strictEqual(domain, await verifier.verifyValidatorDomain(validationPublicKey, masterPublicKey))
+    })
+
     it('should return error for missing account domain', async () => {
 
       const verifier = new ValidatorDomainVerifier()
