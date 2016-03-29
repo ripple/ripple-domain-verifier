@@ -53,7 +53,7 @@ describe('ValidatorDomainVerifier', () => {
         assert(error instanceof RippleTxtNotFound)
         assert.strictEqual(error.message, domain)
       }
-    })
+    }).timeout(20000);
 
     it('should throw an ValidationPublicKeyNotFound error', async () => {
 

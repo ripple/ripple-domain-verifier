@@ -29,10 +29,9 @@
     "mocha": "^2.2.5"
   },
   "dependencies": {
+    "request-promise": "^2.0.1",
     "ripple-address-codec": "^1.6.0",
     "ripple-keypairs": "^0.7.3",
-    "ripple-lib": "^0.12.4",
-    "ripple-vault-client": "^0.4.9",
     "validator": "^3.40.0"
   }
 }
