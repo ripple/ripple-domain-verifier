@@ -1,20 +1,70 @@
-import * as RippleVaultClient from 'ripple-vault-client'
 import {RippleTxtNotFound, ValidationPublicKeyNotFound} from './errors'
+import request from 'request-promise'
+
+const urlTemplates = [
+  'https://{{domain}}/ripple.txt',
+  'https://www.{{domain}}/ripple.txt',
+  'https://ripple.{{domain}}/ripple.txt',
+  'http://{{domain}}/ripple.txt',
+  'http://www.{{domain}}/ripple.txt',
+  'http://ripple.{{domain}}/ripple.txt'
+]
 
 export default class RippleTxt {
 
-  static async get(domain) {
+  static parse(txt) {
+    const sections = { };
+    const lines = txt.replace(/\r?\n/g, '\n').split('\n');
+    let currentSection = '';
+    let line;
 
-    return new Promise((resolve, reject) => {
-      RippleVaultClient.RippleTxt.get(domain, (error, resp) => {
-        if (error || Object.keys(resp).length === 0) {
-          return reject(new RippleTxtNotFound(domain)) 
+    for (let i = 0; i < lines.length; i++) {
+      line = lines[i];
+
+      if (!line.length || line[0] === '#') {
+        continue;
+      }
+
+      if (line[0] === '[' && line[line.length - 1] === ']') {
+        currentSection = line.slice(1, line.length - 1);
+        sections[currentSection] = [];
+      } else {
+        line = line.replace(/^\s+|\s+$/g, '');
+        if (sections[currentSection]) {
+          sections[currentSection].push(line);
         }
-        if (!resp.validation_public_key || resp.validation_public_key.length === 0) {
-          return reject(new ValidationPublicKeyNotFound(domain))
-        }
-        resolve(resp)
-      })
-    })
+      }
+    }
+
+    return sections;
+  }
+
+  static async get(domain) {
+    const self = this;
+
+    return nextUrl(0);
+
+    function nextUrl(i) {
+      let url = urlTemplates[i];
+
+      if (url) {
+        url = url.replace('{{domain}}', domain);
+      } else {
+        throw new RippleTxtNotFound(domain);
+      }
+
+      return request({
+        method: 'GET',
+        uri: url,
+        timeout: 5000
+      }).then(resp => {
+        return self.parse(resp);
+      }).catch(e => {
+        return nextUrl(i + 1);
+      });
+    }
   }
 }
+
+
+exports.RippleTxt = RippleTxt;

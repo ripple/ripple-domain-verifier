@@ -1,10 +1,13 @@
 import {InvalidRippleAccount, AccountDomainNotFound, InvalidDomain, ValidationPublicKeyNotFound} from './errors'
-import {Account, Remote} from 'ripple-lib'
 import validator from 'validator'
 import RippleTxt from './ripple_txt'
+import request from 'request-promise'
 
-import {validateAccountID} from 'ripple-address-codec';
-import {nodePublicAccountID} from 'ripple-keypairs';
+import {validateAccountID} from 'ripple-address-codec'
+import {nodePublicAccountID} from 'ripple-keypairs'
+
+const rippledURL = 'https://s1.ripple.com:51234';
+
 
 export default class ValidatorDomainVerifier {
 
@@ -35,25 +38,23 @@ export default class ValidatorDomainVerifier {
   }
 
   async getDomainHexFromAddress(address) {
-    return new Promise((resolve, reject) => {
-      const remote = new Remote({
-        servers: [ 'wss://s1.ripple.com:443' ]
-      })
-      remote.connect((error) => {
-        if (error) { return reject(error) }
-        const account = new Account(remote, address)
-        account.getInfo((error, info) => {
-          remote.disconnect()
-          if (error) {
-            reject(error)
-          } else if (!info.account_data.Domain) {
-            reject(new AccountDomainNotFound(address))
-          } else {
-            resolve(info.account_data.Domain)
-          }
-        })
-      })
-    })
+    return request({
+      method: 'POST',
+      uri: rippledURL,
+      json: true,
+      body: {
+        method: 'account_info',
+        params: [{
+          account: address
+        }]
+      }
+    }).then((resp) => {
+      if (resp.result.account_data.Domain) {
+        return resp.result.account_data.Domain;
+      } else {
+        throw new AccountDomainNotFound(address);
+      }
+    });
   }
 
   async verifyValidatorDomain(validationPublicKey, masterPublicKey) {
