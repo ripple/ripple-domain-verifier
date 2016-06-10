@@ -1,5 +1,7 @@
 import ValidatorDomainVerifier from '../src'
-import {InvalidRippleAccount, AccountDomainNotFound, InvalidDomain, RippleTxtNotFound, ValidationPublicKeyNotFound} from '../src/errors'
+import {InvalidRippleAccount, AccountDomainNotFound, InvalidDomain,
+        RippleTxtNotFound, ValidationPublicKeyNotFound, DnsTxtRecordNotFound
+       } from '../src/errors'
 import assert from 'assert'
 
 describe('ValidatorDomainVerifier', () => {
@@ -13,7 +15,8 @@ describe('ValidatorDomainVerifier', () => {
       const domain = 'ripple.com'
 
       const domainHex = await verifier.getDomainHexFromAddress(address)
-      assert.strictEqual(domain, ValidatorDomainVerifier._hexToString(domainHex))
+      const decodedDomain = ValidatorDomainVerifier._hexToString(domainHex)
+      assert.strictEqual(domain, decodedDomain)
     })
   })
 
@@ -23,94 +26,143 @@ describe('ValidatorDomainVerifier', () => {
 
       let verifier = new ValidatorDomainVerifier()
       const domain = 'ripple.com'
-      const validationPublicKey = 'n949f75evCHwgyP4fPVgaHqNHxUVN15PsJEZ3B3HnXPcPjcZAoy7'
+      const validationPublicKey =
+        'n949f75evCHwgyP4fPVgaHqNHxUVN15PsJEZ3B3HnXPcPjcZAoy7'
 
-      const validationPublicKeys = await verifier.getValidationPublicKeysFromDomain(domain)
+      const validationPublicKeys =
+        await verifier.getValidationPublicKeysFromDomain(domain)
       assert(validationPublicKeys.indexOf(validationPublicKey)!==-1)
     })
 
-    it('should throw an InvalidDomain error', async () => {
+    it('should throw an InvalidDomain error', async (done) => {
 
       let verifier = new ValidatorDomainVerifier()
       const invalidDomain = 'notadomain'
 
       try {
-        const validationPublicKeys = await verifier.getValidationPublicKeysFromDomain(invalidDomain)
+        await verifier.getValidationPublicKeysFromDomain(invalidDomain)
       } catch(error) {
         assert(error instanceof InvalidDomain)
         assert.strictEqual(error.message, invalidDomain)
+        done()
       }
     })
 
-    it('should throw an RippleTxtNotFound error', async () => {
+    it('should throw a RippleTxtNotFound error', async (done) => {
 
       let verifier = new ValidatorDomainVerifier()
       const domain = 'mises.org'
 
       try {
-        const validationPublicKeys = await verifier.getValidationPublicKeysFromDomain(domain)
+        await verifier.getValidationPublicKeysFromDomain(domain)
       } catch(error) {
         assert(error instanceof RippleTxtNotFound)
         assert.strictEqual(error.message, domain)
+        done()
       }
     }).timeout(20000);
 
-    it('should throw an ValidationPublicKeyNotFound error', async () => {
+    it('should return an empty array if ripple.txt does not include validator', async () => {
 
       let verifier = new ValidatorDomainVerifier()
       const domain = 'bitso.com'
 
-      try {
-        const validationPublicKeys = await verifier.getValidationPublicKeysFromDomain(domain)
-      } catch(error) {
-        assert(error instanceof ValidationPublicKeyNotFound)
-        assert.strictEqual(error.message, domain)
-      }
+      const validationPublicKeys =
+        await verifier.getValidationPublicKeysFromDomain(domain)
+      assert.strictEqual(validationPublicKeys.length, 0)
     })
   })
 
   describe('verifyValidatorDomain', () => {
 
-    it('should find the validation public key at the account root\'s domain', async () => {
+    it('should find the validation public key at the account root domain\'s ripple.txt', async () => {
 
       const verifier = new ValidatorDomainVerifier()
-      const validationPublicKey = 'n949f75evCHwgyP4fPVgaHqNHxUVN15PsJEZ3B3HnXPcPjcZAoy7'
+      const validationPublicKey =
+        'n949f75evCHwgyP4fPVgaHqNHxUVN15PsJEZ3B3HnXPcPjcZAoy7'
       const domain = 'ripple.com'
 
-      assert.strictEqual(domain, await verifier.verifyValidatorDomain(validationPublicKey))
-    })
+      const verifiedDomain =
+        await verifier.verifyValidatorDomain(validationPublicKey)
+      assert.strictEqual(domain, verifiedDomain)    })
 
-    it('should find the master validation public key at the ephemeral key\'s account root\'s domain', async () => {
+    it('should find the master validation public key at the ephemeral key\'s account root domain\'s ripple.txt', async () => {
 
       const verifier = new ValidatorDomainVerifier()
-      const validationPublicKey = 'n9LYyd8eUVd54NQQWPAJRFPM1bghJjaf1rkdji2haF4zVjeAPjT2'
-      const masterPublicKey = 'nHUkAWDR4cB8AgPg7VXMX6et8xRTQb2KJfgv1aBEXozwrawRKgMB'
+      const validationPublicKey =
+        'n9LYyd8eUVd54NQQWPAJRFPM1bghJjaf1rkdji2haF4zVjeAPjT2'
+      const masterPublicKey =
+        'nHUkAWDR4cB8AgPg7VXMX6et8xRTQb2KJfgv1aBEXozwrawRKgMB'
       const domain = 'testnet.ripple.com'
 
-      assert.strictEqual(domain, await verifier.verifyValidatorDomain(validationPublicKey, masterPublicKey))
+      const verifiedDomain = await verifier.verifyValidatorDomain(
+        validationPublicKey, masterPublicKey)
+      assert.strictEqual(domain, verifiedDomain)
     })
 
-    it('should return error for missing account domain', async () => {
+    it('should find the validation public key in the account root domain\'s DNS records', async () => {
 
       const verifier = new ValidatorDomainVerifier()
-      const validationPublicKey = 'n9KwwpYCU3ctereLW9S48fKjK4rcsvYbHmjgiRXkgWReQR9nDjCw'
+      const validationPublicKey =
+        'n9MRhKUt2NBDUn37EXrUBXk68MaeCdX58ts3rJabZrcw8HTUCLMr'
+      const domain = 'altnet.rippletest.net'
+
+      const verifiedDomain =
+        await verifier.verifyValidatorDomain(validationPublicKey)
+      assert.strictEqual(domain, verifiedDomain)
+    })
+
+    it('should find the master validation public key in the ephemeral key\'s account root domain\'s DNS records', async () => {
+
+      const verifier = new ValidatorDomainVerifier()
+      const validationPublicKey =
+        'n9M23ZN71yzz3CMNVRgcoMUegW6bk5SpPtaiv7Sv2Qb64CtYEWEP'
+      const masterPublicKey =
+        'nHU2Z8qQXstanWyrV1nMFfcpjUCCg9eycG4npPhNvjeCvKYmtaRD'
+      const domain = 'altnet.rippletest.net'
+
+      const verifiedDomain = await verifier.verifyValidatorDomain(
+        validationPublicKey, masterPublicKey)
+      assert.strictEqual(domain, verifiedDomain)
+    })
+
+    it('should return an AccountDomainNotFound error for missing account domain', async (done) => {
+
+      const verifier = new ValidatorDomainVerifier()
+      const validationPublicKey =
+        'n9KwwpYCU3ctereLW9S48fKjK4rcsvYbHmjgiRXkgWReQR9nDjCw'
 
       try {
         await verifier.verifyValidatorDomain(validationPublicKey)
       } catch(error) {
         assert(error instanceof AccountDomainNotFound)
+        done()
       }
     })
 
-    it('should return error for validation public not found at domain', async () => {
+    it('should return a DnsTxtRecordNotFound error for DNS TXT record not found', async (done) => {
 
       const verifier = new ValidatorDomainVerifier()
-      const validationPublicKey = 'n9KSFuD5s7jWvcsLEbKJv37kDX57RRR3wf3kS2ra8zedhMW27cN1'
+      const validationPublicKey =
+        'n9M5c2zrxqEX6vBvAVNjR5iSe2AvCpDq6EoqFv5UBS6H9oN6Hatp'
+      try {
+        await verifier.verifyValidatorDomain(validationPublicKey)
+      } catch(error) {
+        assert(error instanceof DnsTxtRecordNotFound)
+        done()
+      }
+    })
 
+    it('should return a ValidationPublicKeyNotFound error for validation public not found', async (done) => {
+
+      const verifier = new ValidatorDomainVerifier()
+      const validationPublicKey =
+        'n9KSFuD5s7jWvcsLEbKJv37kDX57RRR3wf3kS2ra8zedhMW27cN1'
       try {
         await verifier.verifyValidatorDomain(validationPublicKey)
       } catch(error) {
         assert(error instanceof ValidationPublicKeyNotFound)
+        done()
       }
     })
   })
@@ -123,7 +175,7 @@ describe('ValidatorDomainVerifier', () => {
       ValidatorDomainVerifier._validateRippleAddress(address)
     })
 
-    it('should reject an invalid ripple address', async () => {
+    it('should reject an invalid ripple address', async (done) => {
 
       let address = 'n949f75evCHwgyP4fPVgaHqNHxUVN15PsJEZ3B3HnXPcPjcZAoy7'
       try {
@@ -131,6 +183,7 @@ describe('ValidatorDomainVerifier', () => {
       } catch (error) {
         assert(error instanceof InvalidRippleAccount)
         assert.strictEqual(error.message, address)
+        done()
       }
     })
   })
@@ -143,7 +196,7 @@ describe('ValidatorDomainVerifier', () => {
       ValidatorDomainVerifier._validateDomain(domain)
     })
 
-    it('should reject an invalid domain', async () => {
+    it('should reject an invalid domain', async (done) => {
 
       const domain = 'ripple!!'
       try {
@@ -151,6 +204,7 @@ describe('ValidatorDomainVerifier', () => {
       } catch (error) {
         assert(error instanceof InvalidDomain)
         assert.strictEqual(error.message, domain)
+        done()
       }
     })
   })

@@ -29,6 +29,7 @@
     "mocha": "^2.2.5"
   },
   "dependencies": {
+    "bluebird": "^3.4.0",
     "request-promise": "^2.0.1",
     "ripple-address-codec": "^1.6.0",
     "ripple-keypairs": "^0.7.3",
