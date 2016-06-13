@@ -1,5 +1,3 @@
-** Alpha Unstable Do Not Use! **
-
 ## Ripple Validator Domain Verifier
 
 Given a validation public key, verify a two-way reference with a domain
