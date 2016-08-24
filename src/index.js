@@ -1,13 +1,18 @@
-import {InvalidRippleAccount, AccountDomainNotFound, InvalidDomain, ValidationPublicKeyNotFound} from './errors'
+import {Promise} from 'bluebird'
+import {InvalidRippleAccount, AccountDomainNotFound, InvalidDomain,
+  ValidationPublicKeyNotFound, DnsTxtRecordNotFound} from './errors'
 import validator from 'validator'
 import RippleTxt from './ripple_txt'
 import request from 'request-promise'
+import dns from 'dns'
 
 import {validateAccountID} from 'ripple-address-codec'
 import {nodePublicAccountID} from 'ripple-keypairs'
 
-const rippledURL = 'https://s1.ripple.com:51234';
+Promise.promisifyAll(dns);
 
+const rippledURL = 'https://s1.ripple.com:51234';
+const dnsTxtRecordField = 'ripple-validator='
 
 export default class ValidatorDomainVerifier {
 
@@ -34,7 +39,7 @@ export default class ValidatorDomainVerifier {
   async getValidationPublicKeysFromDomain(domain) {
     ValidatorDomainVerifier._validateDomain(domain)
     const rippleTxt = await RippleTxt.get(domain)
-    return rippleTxt.validation_public_key
+    return rippleTxt.validation_public_key || []
   }
 
   async getDomainHexFromAddress(address) {
@@ -67,11 +72,35 @@ export default class ValidatorDomainVerifier {
       throw new AccountDomainNotFound(account_id)
     }
     const domain = ValidatorDomainVerifier._hexToString(domainHex)
-    const publicKeys = await this.getValidationPublicKeysFromDomain(domain)
-    if (publicKeys.indexOf(validationPublicKey)===-1 &&
-        (!masterPublicKey || publicKeys.indexOf(masterPublicKey)===-1)) {
-      throw new ValidationPublicKeyNotFound(domain)
+
+    // Legacy: Look for validator public key in ripple.txt
+    try {
+      const publicKeys = await this.getValidationPublicKeysFromDomain(domain)
+      if (publicKeys.indexOf(validationPublicKey)!==-1 ||
+        (masterPublicKey && publicKeys.indexOf(masterPublicKey)!==-1)) {
+        return domain
+      }
+    } catch (err) {
+      if (err.type!=='RippleTxtNotFound') {
+        throw err
+      }
     }
-    return domain
+
+    // Look for validator public key in DNS TXT record
+    try {
+      const txtRecords = await dns.resolveTxtAsync(domain)
+      for (let record of txtRecords) {
+        for (let chunk of record) {
+          if (chunk===dnsTxtRecordField+validationPublicKey ||
+            (masterPublicKey && chunk===dnsTxtRecordField+masterPublicKey)) {
+            return domain
+          }
+        }
+      }
+    } catch (err) {
+      throw new DnsTxtRecordNotFound(domain)
+    }
+
+    throw new ValidationPublicKeyNotFound(domain)
   }
 }

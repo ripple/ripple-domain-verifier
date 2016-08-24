@@ -1,6 +1,6 @@
 {
   "name": "ripple-domain-verifier",
-  "version": "0.1.7",
+  "version": "0.2.0",
   "description": "two-way cryptographic link between ripple validator and domain",
   "main": "lib/",
   "scripts": {
@@ -29,6 +29,7 @@
     "mocha": "^2.2.5"
   },
   "dependencies": {
+    "bluebird": "^3.4.0",
     "request-promise": "^2.0.1",
     "ripple-address-codec": "^1.6.0",
     "ripple-keypairs": "^0.7.3",

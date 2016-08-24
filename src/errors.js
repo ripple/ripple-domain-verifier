@@ -44,3 +44,11 @@ export class ValidationPublicKeyNotFound extends Error {
   }
 }
 
+export class DnsTxtRecordNotFound extends Error {
+
+  constructor(domain) {
+    super()
+    this.message = domain
+    this.type = 'DnsTxtRecordNotFound'
+  }
+}
