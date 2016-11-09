@@ -5,6 +5,7 @@ import validator from 'validator'
 import RippleTxt from './ripple_txt'
 import request from 'request-promise'
 import dns from 'dns'
+import url from 'url'
 
 import {validateAccountID} from 'ripple-address-codec'
 import {nodePublicAccountID} from 'ripple-keypairs'
@@ -31,7 +32,8 @@ export default class ValidatorDomainVerifier {
   }
 
   static _validateDomain(domain) {
-    if (!validator.isFQDN(domain)) {
+    const domainUrl = url.parse('http://'+domain)
+    if (!validator.isFQDN(domainUrl.host)) {
       throw new InvalidDomain(domain)
     }
   }

@@ -48,6 +48,16 @@ describe('ValidatorDomainVerifier', () => {
       }
     })
 
+    it('should allow domain with url', async () => {
+
+      let verifier = new ValidatorDomainVerifier()
+      const invalidDomain = 'mises.org/library'
+
+      const validationPublicKeys =
+        await verifier.getValidationPublicKeysFromDomain(invalidDomain)
+      assert.strictEqual(validationPublicKeys.length, 0)
+    })
+
     it('should throw a RippleTxtNotFound error', async (done) => {
 
       let verifier = new ValidatorDomainVerifier()
