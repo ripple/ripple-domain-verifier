@@ -1,6 +1,6 @@
 {
   "name": "ripple-domain-verifier",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "two-way cryptographic link between ripple validator and domain",
   "main": "lib/",
   "scripts": {
