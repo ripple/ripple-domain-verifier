@@ -7,102 +7,81 @@ import request from 'request-promise'
 import dns from 'dns'
 import url from 'url'
 
-import {validateAccountID} from 'ripple-address-codec'
-import {nodePublicAccountID} from 'ripple-keypairs'
+import {decodeNodePublic} from 'ripple-address-codec'
+import {verify} from 'ripple-keypairs'
 
 Promise.promisifyAll(dns);
 
-const rippledURL = 'https://s1.ripple.com:51234';
-const dnsTxtRecordField = 'ripple-validator='
+const dnsTxtPubKey = 'ripple-validator='
+const dnsTxtSig = 'ripple-domain-signature='
 
-export default class ValidatorDomainVerifier {
-
-  static _hexToString(hex) {
-    let str = ''
-    for (let i = 0; i < hex.length; i += 2) {
-      str += String.fromCharCode(parseInt(hex.substr(i, 2), 16));
-    }
-    return str;
+function validateDomain(domain) {
+  const domainUrl = url.parse('http://'+domain)
+  if (!validator.isFQDN(domainUrl.host)) {
+    throw new InvalidDomain(domain)
   }
+  return domainUrl.host
+}
 
-  static _validateRippleAddress(rippleAddress) {
-    if (!validateAccountID(rippleAddress)) {
-      throw new InvalidRippleAccount(rippleAddress)
-    }
-  }
+async function getValidationPublicKeysFromDomain(domain) {
+  validateDomain(domain)
+  console.log(domain)
+  const rippleTxt = await RippleTxt.get(domain)
+  return rippleTxt.validation_public_key || []
+}
 
-  static _validateDomain(domain) {
-    const domainUrl = url.parse('http://'+domain)
-    if (!validator.isFQDN(domainUrl.host)) {
-      throw new InvalidDomain(domain)
-    }
-  }
+function bytesToHex(a) {
+  return a.map(function(byteValue) {
+    const hex = byteValue.toString(16).toUpperCase();
+    return hex.length > 1 ? hex : '0' + hex;
+  }).join('');
+}
 
-  async getValidationPublicKeysFromDomain(domain) {
-    ValidatorDomainVerifier._validateDomain(domain)
-    const rippleTxt = await RippleTxt.get(domain)
-    return rippleTxt.validation_public_key || []
-  }
+async function getDnsTxtRecord(domain, prefix) {
+  const host = validateDomain(domain)
+console.log(host)
+  try {
+    const txtRecords = await dns.resolveTxtAsync(host)
+    let res = []
 
-  async getDomainHexFromAddress(address) {
-    return request({
-      method: 'POST',
-      uri: rippledURL,
-      json: true,
-      body: {
-        method: 'account_info',
-        params: [{
-          account: address
-        }]
-      }
-    }).then((resp) => {
-      if (resp.result.account_data.Domain) {
-        return resp.result.account_data.Domain;
-      } else {
-        throw new AccountDomainNotFound(address);
-      }
-    });
-  }
-
-  async verifyValidatorDomain(validationPublicKey, masterPublicKey) {
-    const account_id = nodePublicAccountID(validationPublicKey);
-    ValidatorDomainVerifier._validateRippleAddress(account_id)
-    let domainHex
-    try {
-      domainHex = await this.getDomainHexFromAddress(account_id)
-    } catch (err) {
-      throw new AccountDomainNotFound(account_id)
-    }
-    const domain = ValidatorDomainVerifier._hexToString(domainHex)
-
-    // Legacy: Look for validator public key in ripple.txt
-    try {
-      const publicKeys = await this.getValidationPublicKeysFromDomain(domain)
-      if (publicKeys.indexOf(validationPublicKey)!==-1 ||
-        (masterPublicKey && publicKeys.indexOf(masterPublicKey)!==-1)) {
-        return domain
-      }
-    } catch (err) {
-      if (err.type!=='RippleTxtNotFound') {
-        throw err
-      }
-    }
-
-    // Look for validator public key in DNS TXT record
-    try {
-      const txtRecords = await dns.resolveTxtAsync(domain)
-      for (let record of txtRecords) {
-        for (let chunk of record) {
-          if (chunk===dnsTxtRecordField+validationPublicKey ||
-            (masterPublicKey && chunk===dnsTxtRecordField+masterPublicKey)) {
-            return domain
-          }
+    for (let record of txtRecords) {
+      for (let chunk of record) {
+        if (chunk.indexOf(prefix) === 0) {
+          res.push(chunk.slice(prefix.length))
         }
       }
-    } catch (err) {
-      throw new DnsTxtRecordNotFound(domain)
     }
 
-    throw new ValidationPublicKeyNotFound(domain)
+    return res
+  } catch (err) {
+    return []
   }
+}
+
+async function getValidatorKeys(domain) {
+  const keys = await getDnsTxtRecord(domain, dnsTxtPubKey)
+  keys.push.apply(keys, await getValidationPublicKeysFromDomain(domain))
+
+  return keys
+}
+
+async function getDomainSignatures(domain) {
+  return await getDnsTxtRecord(domain, dnsTxtSig)
+}
+
+function verifyDomainSignature(domain, signature, validatorPublicKey) {
+  try {
+    return verify(
+      new Buffer(domain, 'ascii').toString('hex'),
+      signature,
+      bytesToHex(decodeNodePublic(validatorPublicKey)))    
+  } catch (err) {
+    return false
+  }
+}
+
+module.exports = {
+  getValidatorKeys,
+  getDomainSignatures,
+  verifyDomainSignature
 }

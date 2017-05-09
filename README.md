@@ -1,6 +1,6 @@
 ## Ripple Validator Domain Verifier
 
-Given a validation public key, verify a two-way reference with a domain
+Given a domain, verify a two-way reference with a validator key.
 
 ### Installation
 
@@ -9,15 +9,13 @@ Given a validation public key, verify a two-way reference with a domain
 ### Usage
 
 ````
-import Verifier from 'ripple-validator-domain-verifier'
+const verifier = require('ripple-domain-verifier')
 
-(async function() {
-
-  let verifier = new Verifier()
-
-  verifier.verifyValidatorDomain(validationPublicKey).then(domain => {
-    console.log('verified domain:', domain)
-  })
-
-})()
+verifier.verifyValidatorDomain(domain).then(validatorKeys => {
+  console.log('verified validator keys:', validatorKeys)
+})
 ````
+
+getValidatorKey(domain) - check dns txt record and ripple.txt
+getDomainSignature(domain) - check dns txt record
+verifyDomainSignature(valPubKey, domain, sig) - 

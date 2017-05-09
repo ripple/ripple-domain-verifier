@@ -2,6 +2,7 @@ import {RippleTxtNotFound, ValidationPublicKeyNotFound} from './errors'
 import request from 'request-promise'
 
 const urlTemplates = [
+  // temporary hack
   'https://{{domain}}/ripple.txt',
   'https://www.{{domain}}/ripple.txt',
   'https://ripple.{{domain}}/ripple.txt',
@@ -50,7 +51,7 @@ export default class RippleTxt {
       if (url) {
         url = url.replace('{{domain}}', domain);
       } else {
-        throw new RippleTxtNotFound(domain);
+        return {}
       }
 
       return request({

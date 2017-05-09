@@ -12,6 +12,7 @@ describe('RippleTxt', () => {
       const validationPublicKey = 'n949f75evCHwgyP4fPVgaHqNHxUVN15PsJEZ3B3HnXPcPjcZAoy7'
 
       const rippleTxt = await RippleTxt.get(domain)
+      console.log(rippleTxt.validation_public_key)
       assert(rippleTxt.validation_public_key.indexOf(validationPublicKey)!==-1)
     })
 
