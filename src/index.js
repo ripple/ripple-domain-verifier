@@ -1,6 +1,7 @@
 import {Promise} from 'bluebird'
 import {InvalidRippleAccount, AccountDomainNotFound, InvalidDomain,
-  ValidationPublicKeyNotFound, DnsTxtRecordNotFound} from './errors'
+  ValidationPublicKeyNotFound, DnsTxtRecordNotFound,
+  AccountLookupError} from './errors'
 import validator from 'validator'
 import RippleTxt from './ripple_txt'
 import request from 'request-promise'
@@ -12,10 +13,14 @@ import {nodePublicAccountID} from 'ripple-keypairs'
 
 Promise.promisifyAll(dns);
 
-const rippledURL = 'https://s1.ripple.com:51234';
+const defaultURL = 'https://s1.ripple.com:51234';
 const dnsTxtRecordField = 'ripple-validator='
 
 export default class ValidatorDomainVerifier {
+
+  constructor(rippledURL) {
+    this.rippledURL = rippledURL || defaultURL;
+  }
 
   static _hexToString(hex) {
     let str = ''
@@ -45,18 +50,22 @@ export default class ValidatorDomainVerifier {
   }
 
   async getDomainHexFromAddress(address) {
+    console.log(this.rippledURL)
     return request({
       method: 'POST',
-      uri: rippledURL,
+      uri: this.rippledURL,
       json: true,
       body: {
-        method: 'account_info',
+        method: 'account_inf',
         params: [{
           account: address
         }]
       }
     }).then((resp) => {
-      if (resp.result.account_data.Domain) {
+      console.log(resp)
+      if (resp.result.status === "error") {
+        throw new AccountLookupError(resp.result.error_message)
+      } else if (resp.result.account_data.Domain) {
         return resp.result.account_data.Domain;
       } else {
         throw new AccountDomainNotFound(address);
@@ -71,7 +80,8 @@ export default class ValidatorDomainVerifier {
     try {
       domainHex = await this.getDomainHexFromAddress(account_id)
     } catch (err) {
-      throw new AccountDomainNotFound(account_id)
+      console.log(err)
+      throw new AccountLookupError(err.message)
     }
     const domain = ValidatorDomainVerifier._hexToString(domainHex)
 

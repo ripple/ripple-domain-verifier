@@ -52,3 +52,12 @@ export class DnsTxtRecordNotFound extends Error {
     this.type = 'DnsTxtRecordNotFound'
   }
 }
+
+export class AccountLookupError extends Error {
+
+  constructor(error) {
+    super()
+    this.message = error
+    this.type = 'AccountLookupError'
+  }
+}

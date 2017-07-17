@@ -32,7 +32,7 @@
     "bluebird": "^3.4.0",
     "request-promise": "^2.0.1",
     "ripple-address-codec": "^1.6.0",
-    "ripple-keypairs": "^0.7.3",
+    "ripple-keypairs": "^0.10.0",
     "validator": "^3.40.0"
   }
 }
